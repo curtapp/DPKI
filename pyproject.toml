@@ -1,0 +1,29 @@
+[build-system]
+requires = ["setuptools>=61.00", "setuptools_scm[toml]>=5", "wheel", "pytest"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+version_scheme = "no-guess-dev"
+tag_regex = '''^(?:[\w-]+)?(?P<version>[vV]?\d+(?:\.\d+){0,2}[^\+]*)(?:\+.*)?$'''
+
+[tool.setuptools.packages.find]
+where = ["backend"]
+exclude = ["tests*"]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q"
+testpaths = [
+    "backend/tests",
+]
+
+[project]
+name = "DPKI"
+dynamic = ["version"]
+description = "Distributed public key infrastructure"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+]
+
+
