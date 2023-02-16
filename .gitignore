@@ -1,6 +1,8 @@
 .idea
 .venv
+.data
 .testnet
+.solonet
 build
 dist
 .pytest_cache

@@ -24,6 +24,13 @@ description = "Distributed public key infrastructure"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
+    "pytoml>=0.1.21",
+    "sqlalchemy>=2.0.3",
+    "cryptography>=39.0.1",
+    "aiosqlite>=0.18.0",
+    "PyTend-ABCI @  git+https://github.com/curtapp/PyTend-ABCI.git@master#egg=PyTend-ABCI",
 ]
 
 
+[project.scripts]
+testnet-gen = "scripts.testnet:main"

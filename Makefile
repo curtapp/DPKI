@@ -17,4 +17,10 @@ update-venv:
 	[ -d $(VENV) ] || $(MAKE) venv
 	source $(VENV)/bin/activate && pip install -e .
 
+update-db:
+	source $(VENV)/bin/activate && alembic upgrade head
 
+create-db:
+	source $(VENV)/bin/activate && pip install alembic
+	mkdir -p .data
+	$(MAKE) update-db
