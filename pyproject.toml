@@ -8,13 +8,12 @@ tag_regex = '''^(?:[\w-]+)?(?P<version>[vV]?\d+(?:\.\d+){0,2}[^\+]*)(?:\+.*)?$''
 
 [tool.setuptools.packages.find]
 where = ["backend"]
-exclude = ["tests*"]
 
 [tool.pytest.ini_options]
 minversion = "6.0"
 addopts = "-ra -q"
 testpaths = [
-    "backend/tests",
+    "tests/backend",
 ]
 
 [project]
@@ -28,9 +27,11 @@ dependencies = [
     "sqlalchemy>=2.0.3",
     "cryptography>=39.0.1",
     "aiosqlite>=0.18.0",
+    "httpx>=0.23.3",
     "PyTend-ABCI @  git+https://github.com/curtapp/PyTend-ABCI.git@master#egg=PyTend-ABCI",
 ]
 
 
 [project.scripts]
 testnet-gen = "scripts.testnet:main"
+request-cert = "scripts.x509gen:csr"
