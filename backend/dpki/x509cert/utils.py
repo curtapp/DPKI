@@ -4,27 +4,30 @@ from typing import TYPE_CHECKING, Type
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 
-from .names import DistinguishedName
-from .template import Template
-
+from names import DistinguishedName
+from dpki.x509cert.template import Template
 
 if TYPE_CHECKING:
     from csp.base import Key
-    CommonBuilder = x509.CertificateSigningRequestBuilder | x509.CertificateBuilder
-    IssuerPair = tuple[x509.Certificate | x509.CertificateSigningRequest, Key]
+    from cryptography.x509 import CertificateSigningRequestBuilder, CertificateBuilder, \
+        CertificateSigningRequest, Certificate
+
+    SubjectName =  str | 'DistinguishedName'
+    CommonBuilder = CertificateSigningRequestBuilder | CertificateBuilder
+    IssuerPair = tuple[Certificate | CertificateSigningRequest, Key]
 
 
-def create_csr(distinguished_name: str, key: 'Key',
-               template: Template | Type[Template], **kwargs) -> x509.CertificateSigningRequest:
+def create_csr(subject_name: 'SubjectName', key: 'Key',
+               template: Template | Type[Template], **kwargs) -> 'CertificateSigningRequest':
     """ Creates certificate signing request (CSR) """
-    subject_name = DistinguishedName(distinguished_name)
-    builder = x509.CertificateSigningRequestBuilder().subject_name(subject_name)
+    subject_name = DistinguishedName(subject_name) if isinstance(subject_name, str) else subject_name
+    builder = x509.CertificateSigningRequestBuilder().subject_name(x509.Name.from_rfc4514_string(str(subject_name)))
     builder = template.apply(builder, subject_name, **kwargs)
     return builder.sign(private_key=key.raw, algorithm=None, backend=default_backend())
 
 
-def apply_csr(csr: x509.CertificateSigningRequest, issuer_pair: 'IssuerPair',
-              not_valid_after: date | str, not_valid_before: date | str = None) -> x509.Certificate:
+def apply_csr(csr: 'CertificateSigningRequest', issuer_pair: 'IssuerPair',
+              not_valid_after: date | str, not_valid_before: date | str = None) -> 'Certificate':
     """ Create and sings certificate based on CSR """
 
     def normalize_if_str(value):
@@ -40,3 +43,9 @@ def apply_csr(csr: x509.CertificateSigningRequest, issuer_pair: 'IssuerPair',
         .not_valid_before(not_valid_before).not_valid_after(not_valid_after) \
         .serial_number(x509.random_serial_number())
     return builder.sign(private_key=key.raw, algorithm=None, backend=default_backend())
+
+
+def can_issue(issuer: 'Certificate', csr: 'CertificateSigningRequest') -> bool:
+    """ Returns true if a given issuer certificate can issue a given signing request """
+
+
