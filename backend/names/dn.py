@@ -52,5 +52,5 @@ class DistinguishedName:
         result = tuple(tuple((key, value) for key, value in item if key in hierarchy.value) for item in self._raw)
         result = result[1:] if base and result[0][0][0] == hierarchy.value[-1] else result
         result = tuple(filter(lambda a: a, result))
-        if result and result[-1][0][0] == hierarchy.value[0]:
+        if result and result[-1][0][0] in (hierarchy.value[0], 'UID'):
             return DistinguishedName(result)

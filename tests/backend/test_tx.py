@@ -1,3 +1,4 @@
+import re
 import pytest
 
 from dpki.chainapp import TxChecker
@@ -21,16 +22,15 @@ async def test_tx(app, unrecognized_tx):
 
 @pytest.fixture
 def csr_tx():
-    yield \
-b'''-----BEGIN CERTIFICATE REQUEST-----
-MIIBFDCBxwIBADBNMQswCQYDVQQGEwJXTjERMA8GA1UEBwwIQ2hlc2hpcmUxFDAS
-BgNVBAkMC0NhdCdzIGhvdXNlMRUwEwYDVQQDDAxDaGVzaGlyZSBDYXQwKjAFBgMr
-ZXADIQAah1jNLzZvtKLJn9bd7ImZWW0nzM9qBBLmx10p1o+0HqBHMEUGCSqGSIb3
-DQEJDjE4MDYwDAYDVR0TAQH/BAIwADAOBgNVHQ8BAf8EBAMCBPAwFgYDVR0lAQH/
-BAwwCgYIKwYBBQUHAwIwBQYDK2VwA0EAZvY0JLT4rWn8pIWwuF1DR+brBtWEwZIT
-VCTlb+gR/Hm0jnzd5J2qlQ6RmHXvHB3vYiBpLhyZCzcNYyYU7E6aDA==
------END CERTIFICATE REQUEST-----'''
-
+    yield re.sub(r'\n\s*', '\n',
+                 '''-----BEGIN CERTIFICATE REQUEST-----
+                 MIH5MIGsAgEAMDIxCzAJBgNVBAYTAldOMSMwDAYDVQQDDAVBbGVzaDATBgoJkiaJ
+                 k/IsZAEBDAVhbGVzaDAqMAUGAytlcAMhAOiHZR7V+fFgzApaZM9Qt0zjzM91+IZy
+                 30VhYY5iexOKoEcwRQYJKoZIhvcNAQkOMTgwNjAMBgNVHRMBAf8EAjAAMA4GA1Ud
+                 DwEB/wQEAwIE8DAWBgNVHSUBAf8EDDAKBggrBgEFBQcDAjAFBgMrZXADQQC4PA0C
+                 l3UQmBhUEay/WrpJRCa9hxcGaaZG5CcVbw+E9Eb0HVgOhh1UlQxGjg4LAydqWvuS
+                 d9JXAIDcMAnQuvsL
+                 -----END CERTIFICATE REQUEST-----''').encode('utf8')
 
 @pytest.mark.asyncio
 async def test_csr_tx(app, csr_tx):

@@ -4,6 +4,9 @@ from cryptography import x509
 from tend import abci
 from tend.abci.handlers import ResultCode, ResponseCheckTx
 
+import dpki.x509cert.template
+from dpki import x509cert
+
 if TYPE_CHECKING:
     from typing import Optional, Tuple
     from . import Application
@@ -30,6 +33,6 @@ class TxChecker(abci.ext.TxChecker):
 
     @staticmethod
     def check_csr(app: 'Application', csr: 'CertificateSigningRequest') -> 'Result':
-        if csr.is_signature_valid:
+        if csr.is_signature_valid and x509cert.template.matches_to(csr):
             return ResultCode.OK, None
         return ResultCode.Error, 'Wrong CSR'

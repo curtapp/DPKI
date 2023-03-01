@@ -50,9 +50,9 @@ def csr():
     if args.password:
         password = get_password(args.key is not None)
 
-    if args.template == 'CA':
+    if args.template.upper() == 'CA':
         template = x509cert.template.CA
-    elif args.template == 'host':
+    elif args.template.upper() == 'HOST':
         template = x509cert.template.Host
     else:
         template = x509cert.template.User

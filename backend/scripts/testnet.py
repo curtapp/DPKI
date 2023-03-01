@@ -86,7 +86,7 @@ def make_ca(root_path, distinguished_name, moniker, genesis, issuer_pair, passwo
                        value=b64encode(bytes(key) + bytes(key.public_key)).decode('utf8')), file)
     with open(os.path.join(root_path, moniker, 'config', 'config.toml'), 'r') as file:
         config = pytoml.load(file)
-        config['ca'] = dict(ca_key_file='config/ca_key.json', template=['CA', 'Node', 'User'],
+        config['ca'] = dict(ca_key_file='config/ca_key.json', allow_templates=['CA', 'Node', 'User'],
                             ca_valid_for='795d', host_valid_for='530d', user_valid_for='365d', next_path_length=3,
                             waiting_for_downstream='900s')
     with open(os.path.join(root_path, moniker, 'config', 'config.toml'), 'w') as file:

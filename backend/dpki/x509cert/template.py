@@ -1,5 +1,6 @@
+import logging
 from abc import ABC, abstractmethod
-from typing import Sequence, TYPE_CHECKING
+from typing import Sequence, Type, TYPE_CHECKING
 
 from cryptography import x509
 from cryptography.x509 import DNSName, RFC822Name
@@ -27,6 +28,16 @@ def get_enabled_ku(extval) -> tuple[str, ...]:
         except:
             pass
     return tuple(sorted(result))
+
+
+def matches_to(builder: 'CommonBuilder') -> Type['Template'] | None:
+    """ Returns matched certificate template """
+    if CA.matches(builder):
+        return CA
+    elif Host.matches(builder):
+        return Host
+    elif User.matches(builder):
+        return Host
 
 
 class Template(ABC):
@@ -64,7 +75,8 @@ class Template(ABC):
                 if isinstance(ext.value, x509.KeyUsage) and get_enabled_ku(ext.value) != get_enabled_ku(extval):
                     raise ValueError
             return True
-        except:
+        except Exception as exc:
+            logging.exception('!!!')
             return False
 
 
@@ -111,9 +123,10 @@ class User(Template):
         username = None
         if hierarchy := distinguished_name.extract(Hierarchy.Domain, False):
             if hierarchy._raw[0][0][0] == 'UID':
-                uid = hierarchy._raw[0][0][1]
+                username = hierarchy._raw[0][0][1]
                 domain = '.'.join(item[0][1] for item in hierarchy._raw[1:])
-                username = '@'.join([uid, domain])
+                if domain:
+                    username = '@'.join([username, domain])
         return [
             (x509.BasicConstraints(ca=False, path_length=None), True),
             (x509.KeyUsage(**enable_ku('digital_signature', 'key_encipherment',
