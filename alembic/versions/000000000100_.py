@@ -2,7 +2,7 @@
 
 Revision ID: 000000000100
 Revises: 000000000000
-Create Date: 2023-02-16 12:39:38.278965
+Create Date: 2023-03-01 14:44:53.960409
 
 """
 from alembic import op
@@ -32,6 +32,7 @@ def upgrade() -> None:
     sa.Column('not_valid_after', sa.DateTime(), nullable=False),
     sa.Column('not_valid_before', sa.DateTime(), nullable=False),
     sa.Column('revocated_at', sa.DateTime(), nullable=True),
+    sa.Column('role', sa.String(), nullable=True),
     sa.PrimaryKeyConstraint('sn')
     )
     op.create_index(op.f('ix_cert_entities_name'), 'cert_entities', ['name'], unique=False)

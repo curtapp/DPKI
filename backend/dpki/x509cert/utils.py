@@ -45,7 +45,4 @@ def apply_csr(csr: 'CertificateSigningRequest', issuer_pair: 'IssuerPair',
     return builder.sign(private_key=key.raw, algorithm=None, backend=default_backend())
 
 
-def can_issue(issuer: 'Certificate', csr: 'CertificateSigningRequest') -> bool:
-    """ Returns true if a given issuer certificate can issue a given signing request """
-
 

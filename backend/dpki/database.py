@@ -26,6 +26,7 @@ cert_entities = Table(
     Column('not_valid_after', DateTime, nullable=False),
     Column('not_valid_before', DateTime, nullable=False),
     Column('revocated_at', DateTime, nullable=True),
+    Column('role', String),
 )
 
 

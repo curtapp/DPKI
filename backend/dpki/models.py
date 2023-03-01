@@ -14,7 +14,7 @@ class CertEntity:
         not_valid_before: Certificate valid from this date.
         not_valid_after: Certificate valid till this date.
         revocated_at: Certificate has revocated from this date.
-        function: Describes certificates' function
+        role: Describes certificates' role
     """
     sn: bytes
     name: str
@@ -23,4 +23,4 @@ class CertEntity:
     not_valid_after: datetime
     not_valid_before: datetime
     revocated_at: datetime = None
-    function: str = None
+    role: str = None

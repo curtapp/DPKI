@@ -11,6 +11,7 @@ from tend import abci
 
 import csp.sha256
 from dpki import database as t
+from dpki.x509cert import template as cert_template
 from ..models import CertEntity
 
 if TYPE_CHECKING:
@@ -58,10 +59,17 @@ class TxKeeper(abci.ext.TxKeeper):
             cert = x509.load_pem_x509_certificate(pem_serialized.encode('utf8'), backend=default_backend())
             not_valid_before = cert.not_valid_before.replace(tzinfo=timezone.utc)
             not_valid_after = cert.not_valid_after.replace(tzinfo=timezone.utc)
+            role = None
+            if cert_template.CA.matches(cert):
+                role = 'CA'
+            elif cert_template.Host.matches(cert):
+                role = 'Host'
+            elif cert_template.User.matches(cert):
+                role = 'User'
             certs.append(asdict(
                 CertEntity(sn=bytes.fromhex('{0:040X}'.format(cert.serial_number)), name=cert.subject.rfc4514_string(),
                            public_key=bytes(self.app.csp.key_import(cert.public_key())), pem_serialized=pem_serialized,
-                           not_valid_before=not_valid_before, not_valid_after=not_valid_after)))
+                           not_valid_before=not_valid_before, not_valid_after=not_valid_after, role=role)))
             hasher.write(pem_serialized.encode('utf8'))
         if certs:
             insert_stmt = insert(t.cert_entities)

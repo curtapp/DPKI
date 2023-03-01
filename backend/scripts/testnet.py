@@ -3,6 +3,7 @@ import os.path
 import shutil
 import subprocess
 import sys
+from base64 import b64encode
 from collections.abc import Mapping
 
 import pytoml
@@ -12,7 +13,7 @@ from csp import ed25519
 from csp.provider import CSProvider
 import dpki.x509cert.template
 from dpki import x509cert
-from dpki.chain.utils import JSONEncoder
+from dpki.chainapp.utils import JSONEncoder
 
 
 def deep_update(dst: dict, src: dict):
@@ -77,17 +78,20 @@ def make_root_ca(root_path, distinguished_name, genesis, password=None):
 def make_ca(root_path, distinguished_name, moniker, genesis, issuer_pair, password=None):
     csp = CSProvider()
     key = csp.key_gen(ed25519.KeyOpts())
-    csr = x509cert.create_csr(distinguished_name, key, x509cert.template.CA, path_length=7)
+    csr = x509cert.create_csr(distinguished_name, key, dpki.x509cert.template.CA, path_length=7)
     cert = x509cert.apply_csr(csr, issuer_pair, '2050-01-01')
     genesis['app_state']['certificates'].append(cert.public_bytes(encoding=serialization.Encoding.PEM).decode('utf8'))
-    encryption_algorithm = (serialization.BestAvailableEncryption(password)
-                            if password else serialization.NoEncryption())
-    with open(os.path.join(root_path, moniker, 'ca.key'), 'wb') as file:
-        file.write(key.raw.private_bytes(encoding=serialization.Encoding.PEM,
-                                         format=serialization.PrivateFormat.PKCS8,
-                                         encryption_algorithm=encryption_algorithm))
-    with open(os.path.join(root_path, moniker, 'ca.crt'), "wb") as file:
-        file.write(cert.public_bytes(encoding=serialization.Encoding.PEM))
+    with open(os.path.join(root_path, moniker, 'config', 'ca_key.json'), 'w') as file:
+        json.dump(dict(type='tendermint/PrivKeyEd25519',
+                       value=b64encode(bytes(key) + bytes(key.public_key)).decode('utf8')), file)
+    with open(os.path.join(root_path, moniker, 'config', 'config.toml'), 'r') as file:
+        config = pytoml.load(file)
+        config['ca'] = dict(ca_key_file='config/ca_key.json', template=['CA', 'Node', 'User'],
+                            ca_valid_for='795d', host_valid_for='530d', user_valid_for='365d', next_path_length=3,
+                            waiting_for_downstream='900s')
+    with open(os.path.join(root_path, moniker, 'config', 'config.toml'), 'w') as file:
+        pytoml.dump(config, file)
+
     return cert, key
 
 
