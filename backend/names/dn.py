@@ -50,7 +50,20 @@ class DistinguishedName:
     def extract(self, hierarchy: Hierarchy, base: bool = False) -> Optional['DistinguishedName']:
         """ Extracts a given hierarchy DN """
         result = tuple(tuple((key, value) for key, value in item if key in hierarchy.value) for item in self._raw)
-        result = result[1:] if base and result[0][0][0] == hierarchy.value[-1] else result
         result = tuple(filter(lambda a: a, result))
-        if result and result[-1][0][0] in (hierarchy.value[0], 'UID'):
-            return DistinguishedName(result)
+        if result:
+            result = result[1:] if base and result[0][0][0] == hierarchy.value[-1] else result
+            result = tuple(filter(lambda a: a, result))
+            if result and result[-1][0][0] in (hierarchy.value[0], 'UID'):
+                return DistinguishedName(result)
+
+    def distance(self, hierarchy: Hierarchy, other: 'DistinguishedName') -> int:
+        """ Magic ;) distance """
+        a = self.extract(hierarchy, True)
+        b = other.extract(hierarchy, True)
+        if a and b:
+            a = tuple(reversed(a._raw))
+            b = tuple(reversed(b._raw))
+            if b[:len(a)] == a:
+                return len(b) - len(a) + 1
+        return 0

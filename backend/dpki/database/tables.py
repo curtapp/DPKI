@@ -1,8 +1,5 @@
-import os
-from sqlalchemy import create_engine, String, Text
-from sqlalchemy.ext.asyncio import create_async_engine
-
 from sqlalchemy import BigInteger, DateTime, LargeBinary
+from sqlalchemy import String, Text
 from sqlalchemy import Table, Column, func
 from sqlalchemy.orm import registry
 
@@ -28,24 +25,3 @@ cert_entities = Table(
     Column('revocated_at', DateTime, nullable=True),
     Column('role', String),
 )
-
-
-def get_database_url(sync=False):
-    database_url = os.environ.get('DATABASE_URL', 'sqlite+aiosqlite:///.data/database.db')
-    if sync:
-        for async_item in ['+asyncpg', '+aiosqlite']:
-            if async_item in database_url:
-                database_url = database_url.replace(async_item, '')
-                break
-        else:
-            raise ValueError(f"Cannot get sync url from {database_url}")
-        return database_url
-    else:
-        return database_url
-
-
-def engine_factory(sync=False):
-    if sync:
-        return create_engine(get_database_url(sync=True))
-    else:
-        return create_async_engine(get_database_url(sync=False))

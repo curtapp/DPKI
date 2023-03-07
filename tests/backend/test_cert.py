@@ -18,7 +18,7 @@ def pem_ca_cert():
                  qaM2D8YXRCskECfZ1gynoyMwITAPBgNVHRMBAf8EBTADAQH/MA4GA1UdDwEB/wQE
                  AwIBhjAFBgMrZXADQQDWDpMKNrYzZO/2NdpW1//vRfjAO8FZCPwEIxjW7r1CWlEI
                  DQNoSWOaaTPQ+Druk9d9fkQ8Zwyv3j+XAXchDLsM
-                 -----END CERTIFICATE-----''').replace(' ', '').encode('utf8')
+                 -----END CERTIFICATE-----''').encode('utf8')
 
 
 def test_ca_cert_deserialize(pem_ca_cert):

@@ -1,5 +1,13 @@
 from dataclasses import dataclass
 from datetime import datetime
+import tend.abci.ext
+from tend import abci
+
+
+@dataclass(kw_only=True)
+class AppState(abci.ext.AppState):
+    """ Application state
+    """
 
 
 @dataclass(kw_only=True)

@@ -13,7 +13,7 @@ from csp import ed25519
 from csp.provider import CSProvider
 import dpki.x509cert.template
 from dpki import x509cert
-from dpki.chainapp.utils import JSONEncoder
+from dpki.utils import JSONEncoder
 
 
 def deep_update(dst: dict, src: dict):

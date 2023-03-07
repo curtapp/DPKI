@@ -37,7 +37,7 @@ def matches_to(builder: 'CommonBuilder') -> Type['Template'] | None:
     elif Host.matches(builder):
         return Host
     elif User.matches(builder):
-        return Host
+        return User
 
 
 class Template(ABC):
@@ -75,8 +75,7 @@ class Template(ABC):
                 if isinstance(ext.value, x509.KeyUsage) and get_enabled_ku(ext.value) != get_enabled_ku(extval):
                     raise ValueError
             return True
-        except Exception as exc:
-            logging.exception('!!!')
+        except:
             return False
 
 
