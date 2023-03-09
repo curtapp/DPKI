@@ -17,12 +17,18 @@
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
+      "api/*": [
+        "src/api/*"
+      ],
       "assets/*": [
         "src/assets/*"
       ],
       "components/*": [
         "src/components/*"
       ],
+      "views/*": [
+        "src/views/*"
+      ]
     }
   },
   "include": ["src", "messages"],

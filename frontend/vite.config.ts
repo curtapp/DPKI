@@ -7,6 +7,9 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 export default defineConfig({
   server: {
     port: 3000,
+    proxy: {
+      '/abci_query': 'http://localhost:26657',
+    },
   },
   plugins: [
     react({

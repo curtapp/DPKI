@@ -1,8 +1,8 @@
-import Welcome from 'components/Welcome';
+import CreateRequest from 'views/CreateRequest';
 
 /// Application entry point
 function App() {
-  return <Welcome />;
+  return <CreateRequest />;
 }
 
 export default App;
