@@ -65,13 +65,13 @@ class CertEntity(models.CertEntity, metaclass=Repo, table=cert_entities):
         """ Return serialized certificate by subject name """
         select_stmt = select(CertEntity.c) \
             .where(CertEntity.c.not_valid_after > datetime.now(tz=timezone.utc)) \
-            .where(CertEntity.c.name == subject_name) \
+            .where(CertEntity.c.subject_name == subject_name) \
             .where(CertEntity.c.revocated_at == None)
         async for obj in await ac.stream(select_stmt):
             return obj.pem_serialized
 
     @staticmethod
-    async def list_by_role(ac: 'AsyncConnection', role: str, limit=500, offset=0) -> list[str]:
+    async def list_by_role(ac: 'AsyncConnection', role: str, limit=500, offset=0) -> list['CertEntity']:
         """ Return list of serialized certificates with requested role """
         result = []
         select_stmt = select(CertEntity.c) \
@@ -79,5 +79,5 @@ class CertEntity(models.CertEntity, metaclass=Repo, table=cert_entities):
             .where(CertEntity.c.role == role) \
             .where(CertEntity.c.revocated_at == None).limit(limit).offset(offset)
         async for obj in await ac.stream(select_stmt):
-            result.append(obj.pem_serialized)
+            result.append(CertEntity(**obj._asdict()))
         return result

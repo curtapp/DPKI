@@ -40,14 +40,18 @@ class TxKeeper(abci.ext.TxKeeper, CheckerMixin):
         pem_serialized = cert.public_bytes(encoding=serialization.Encoding.PEM).decode('utf8')
         tmpl = template.matches_to(cert)
         if tmpl == template.CA:
-            role = 'CA'
+            if cert.issuer.rfc4514_string() == cert.subject.rfc4514_string():
+                role = 'Root CA'
+            else:
+                role = 'CA'
         elif tmpl:
             role = tmpl.__name__
         else:
             role = None
-        return CertEntity(sn=bytes.fromhex('{0:040X}'.format(cert.serial_number)), name=cert.subject.rfc4514_string(),
+        return CertEntity(sn=bytes.fromhex('{0:040X}'.format(cert.serial_number)),
+                          subject_name=cert.subject.rfc4514_string(), role=role,
                           public_key=bytes(self.app.csp.key_import(cert.public_key())), pem_serialized=pem_serialized,
-                          not_valid_before=not_valid_before, not_valid_after=not_valid_after, role=role)
+                          not_valid_before=not_valid_before, not_valid_after=not_valid_after)
 
     async def load_genesis(self, genesis_data: bytes):
         if self.ac is None:

@@ -1,10 +1,16 @@
+import json
+from dataclasses import asdict
+
 import tend.abci.ext
+from cryptography import x509
+from cryptography.hazmat.backends import default_backend
 from sqlalchemy.ext.asyncio import AsyncEngine
 from tend import abci
+from tend.abci.handlers import RequestQuery, ResponseQuery, ResultCode
 
 from csp.provider import CSProvider
 from dpki import database
-from dpki.database.repository import AppState
+from dpki.database.repository import AppState, CertEntity
 from dpki.ca import CA
 
 from .checker import TxChecker
@@ -34,3 +40,17 @@ class Application(abci.ext.Application):
             ca_subject = await self.ca.initialize()
             if ca_subject:
                 self.logger.info(f"CA initialized on this node; subject: {ca_subject}")
+
+    async def query(self, req: 'RequestQuery') -> 'ResponseQuery':
+        result = list()
+        if req.path.lower() == 'ca/list':
+            async with self.database.begin() as ac:
+                ca_list = await CertEntity.list_by_role(ac, 'CA')
+                for ca in ca_list:
+                    cert = x509.load_pem_x509_certificate(ca.pem_serialized.encode('utf8'), backend=default_backend())
+                    path_length = cert.extensions.get_extension_for_class(x509.BasicConstraints).value.path_length
+                    result.append(dict(subject=ca.subject_name,path_length=path_length,
+                                       issuer=cert.issuer.rfc4514_string()))
+                return ResponseQuery(code=ResultCode.OK, height=self.state.block_height,
+                                     value=json.dumps(result, ensure_ascii=False).encode('utf8'))
+        return await super().query(req)

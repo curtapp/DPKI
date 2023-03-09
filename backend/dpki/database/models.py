@@ -16,7 +16,7 @@ class CertEntity:
 
     Attributes:
         sn: Serial number.
-        name: Distinguished name.
+        subject_name: Distinguished name.
         public_key: Bytes representation of public key.
         pem_serialized: PEM serialized certificate.
         not_valid_before: Certificate valid from this date.
@@ -25,7 +25,7 @@ class CertEntity:
         role: Describes certificates' role
     """
     sn: bytes
-    name: str
+    subject_name: str
     public_key: bytes
     pem_serialized: str
     not_valid_after: datetime

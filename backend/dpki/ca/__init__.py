@@ -66,9 +66,9 @@ class CA:
                         cert = x509.load_pem_x509_certificate(pem_serialized.encode('utf8'))
                         self.__chain.append(cert)
             else:
-                pem_serialized = await CertEntity.list_by_role(ac, 'CA Root', 1)
-                if pem_serialized:
-                    self.__chain.append(x509.load_pem_x509_certificate(pem_serialized[0].encode('utf8')))
+                result = await CertEntity.list_by_role(ac, 'CA Root', 1)
+                if result:
+                    self.__chain.append(x509.load_pem_x509_certificate(result[0].pem_serialized.encode('utf8')))
                 else:
                     raise RuntimeError('Not found active CA root cert')
         return result

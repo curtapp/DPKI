@@ -17,7 +17,7 @@ app_state = Table(
 cert_entities = Table(
     'cert_entities', metadata,
     Column('sn', LargeBinary, primary_key=True),
-    Column('name', String, nullable=False, index=True),
+    Column('subject_name', String, nullable=False, index=True),
     Column('public_key', LargeBinary, nullable=False, index=True),
     Column('pem_serialized', Text, nullable=False),
     Column('not_valid_after', DateTime, nullable=False),

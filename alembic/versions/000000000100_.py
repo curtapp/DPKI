@@ -26,7 +26,7 @@ def upgrade() -> None:
     )
     op.create_table('cert_entities',
     sa.Column('sn', sa.LargeBinary(), nullable=False),
-    sa.Column('name', sa.String(), nullable=False),
+    sa.Column('subject_name', sa.String(), nullable=False),
     sa.Column('public_key', sa.LargeBinary(), nullable=False),
     sa.Column('pem_serialized', sa.Text(), nullable=False),
     sa.Column('not_valid_after', sa.DateTime(), nullable=False),
@@ -35,7 +35,7 @@ def upgrade() -> None:
     sa.Column('role', sa.String(), nullable=True),
     sa.PrimaryKeyConstraint('sn')
     )
-    op.create_index(op.f('ix_cert_entities_name'), 'cert_entities', ['name'], unique=False)
+    op.create_index(op.f('ix_cert_entities_name'), 'cert_entities', ['subject_name'], unique=False)
     op.create_index(op.f('ix_cert_entities_public_key'), 'cert_entities', ['public_key'], unique=False)
     # ### end Alembic commands ###
 
