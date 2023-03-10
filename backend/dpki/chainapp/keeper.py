@@ -8,7 +8,7 @@ import tend.abci.ext
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
-from cryptography.x509 import Certificate
+from cryptography.x509 import Certificate, CertificateSigningRequest
 from tend import abci
 from tend.abci.handlers import ResultCode, ResponseDeliverTx
 
@@ -79,9 +79,12 @@ class TxKeeper(abci.ext.TxKeeper, CheckerMixin):
             self.app.logger.debug(f'deliver_tx: {asdict(req)}')
         code, payload = await self._check_tx(req.tx)
         if code == ResultCode.OK:
-            if isinstance(payload, Certificate):
+            if isinstance(payload, CertificateSigningRequest):
+                await self.app.ca.issue_iiiy(payload)
+                return ResponseDeliverTx(code=100)
+            elif isinstance(payload, Certificate):
                 await CertEntity.insert(self.ac, [self._make_cert_entity(payload)])
-            self.app.logger.debug(f'deliver_tx: code={code}')
+                return ResponseDeliverTx(code=code, data=payload.subject.rfc4514_string().encode('utf8'))
             return ResponseDeliverTx(code=code)
         return ResponseDeliverTx(code=code, log=(payload if isinstance(payload, str) else 'Unknown TX'))
 

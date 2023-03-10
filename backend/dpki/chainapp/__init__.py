@@ -1,28 +1,24 @@
+import asyncio
 import json
-from dataclasses import asdict
 
 import tend.abci.ext
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
-from sqlalchemy.ext.asyncio import AsyncEngine
 from tend import abci
 from tend.abci.handlers import RequestQuery, ResponseQuery, ResultCode
 
 from csp.provider import CSProvider
 from dpki import database
 from dpki.database.repository import AppState, CertEntity
-from dpki.ca import CA
 
 from .checker import TxChecker
 from .keeper import TxKeeper
+from ..caservice import CA
 
 
 class Application(abci.ext.Application):
     """ ABCI Chain application
     """
-
-    ca: CA
-    database: AsyncEngine
 
     def __init__(self, home_path: str, logger=None):
         super().__init__(TxChecker(self), TxKeeper(self), logger)
@@ -31,6 +27,7 @@ class Application(abci.ext.Application):
         self.ca = CA(self.database, home_path, logger)
 
     async def get_initial_app_state(self):
+        self._ca = asyncio.create_task(self.ca.start())
         async with self.database.begin() as ac:
             return await AppState.get_initial(ac)
 

@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from typing import Union, Tuple
     from . import Application
 
-    CheckerResult = Tuple[ResultCode, Union[str, None, CertificateSigningRequest, Certificate]]
+    CheckerResult = Tuple[ResultCode | int, Union[str, None, CertificateSigningRequest, Certificate]]
 
 
 class CheckerMixin:
@@ -34,7 +34,17 @@ class CheckerMixin:
 
     async def _check_csr_tx(self, csr: 'CertificateSigningRequest') -> 'CheckerResult':
         """ Checks CSR taken from transaction """
-        if csr.is_signature_valid and x509cert.template.matches_to(csr) and self.app.ca.in_namespace(csr):
+        csp = CSProvider()
+        if csr.is_signature_valid and x509cert.template.matches_to(csr):
+            pub = csp.key_import(csr.public_key())
+            async with self.app.database.begin() as ac:
+                if pem_serialized := await CertEntity.get_by_subject(ac, csr.subject.rfc4514_string()):
+                    found = x509.load_pem_x509_certificate(pem_serialized.encode('utf8'))
+                    found_pub = csp.key_import(found.public_key())
+                    if found_pub == pub:
+                        return 100, 'Certificate already exists'
+                    else:
+                        return ResultCode.Error, 'Certificate for given subject already issued for an other public key'
             return ResultCode.OK, (csr if self.app.ca.cert else None)
         return ResultCode.Error, 'Wrong CSR'
 
@@ -44,8 +54,13 @@ class CheckerMixin:
         pub = csp.key_import(cert.public_key())
         if x509cert.template.matches_to(cert):
             async with self.app.database.begin() as ac:
-                if await CertEntity.get_by_public_key(ac, bytes(pub)):
-                    return ResultCode.Error, 'Certificate already exists'
+                if pem_serialized := await CertEntity.get_by_subject(ac, cert.subject.rfc4514_string()):
+                    found = x509.load_pem_x509_certificate(pem_serialized.encode('utf8'))
+                    found_pub = csp.key_import(found.public_key())
+                    if found_pub == pub:
+                        return ResultCode.Error, 'Certificate already exists'
+                    else:
+                        return ResultCode.Error, 'Certificate for given subject already issued for an other public key'
                 if not await CertEntity.get_by_subject(ac, cert.issuer.rfc4514_string()):
                     return ResultCode.Error, 'Certificate issuer not found'
             return ResultCode.OK, (cert if self.app.ca.cert else None)
@@ -64,7 +79,5 @@ class TxChecker(abci.ext.TxChecker, CheckerMixin):
         """ ABCI method that checks transaction """
         code, payload = await self._check_tx(req.tx)
         if code == ResultCode.OK:
-            if isinstance(payload, CertificateSigningRequest):
-                await self.app.ca.issue_iiiy(payload)
             return ResponseCheckTx(code=code)
         return ResponseCheckTx(code=code, log=(payload if isinstance(payload, str) else 'Unknown TX'))

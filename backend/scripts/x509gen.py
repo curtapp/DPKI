@@ -1,4 +1,5 @@
 import sys
+import json
 import os.path
 import argparse
 from getpass import getpass
@@ -73,7 +74,22 @@ def csr():
     csr = x509cert.create_csr(args.subject, key, template=template)
     r = httpx.post('http://localhost:26657/check_tx',
                    data=dict(tx='0x' + csr.public_bytes(encoding=serialization.Encoding.PEM).hex()))
-    print(r)
+    result = json.loads(r.content)['result']
+    if result['code'] != 0:
+        print(f"ERROR: {result['log']}")
+        exit(-2)
+
+
+    r = httpx.post('http://localhost:26657/broadcast_tx_async',
+                   data=dict(tx='0x' + csr.public_bytes(encoding=serialization.Encoding.PEM).hex()))
+    result = json.loads(r.content)['result']
+    if result['code'] != 0:
+        print(f"ERROR: {result['log']}")
+        exit(-2)
+
+
+
+    print(result)
     # with open(os.path.join(output, 'certificate.csr'), 'wb') as file:
     #     file.write(csr.public_bytes(encoding=serialization.Encoding.PEM))
 
